@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crypto Wallet Tracker</title>
+
+<!-- Ethers v6 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.8.0/ethers.umd.min.js"></script>
+
+<style>
+    /* Reset & body */
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        color: white;
+        min-height: 100vh;
+        background: url("shutterstock_2526729523_9f7b1ad430.webp") no-repeat center center / cover;
+        position: relative;
+    }
+
+    /* Dark overlay for readability */
+    body::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.45);
+        z-index: 0;
+    }
+
+    /* Container */
+    .container {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px;
+        gap: 10px;
+        flex-wrap: wrap;
+        box-sizing: border-box;
+        min-height: 100vh;
+    }
+
+    /* Panels */
+    .left-panel, .right-panel {
+        flex: 1 1 30%;
+        background: rgba(255,255,255,0.05);
+        padding: 25px;
+        border-radius: 1px;
+        backdrop-filter: blur(1px);
+        box-shadow: 0 0 20px rgba(0,255,255,0.2);
+        min-width: 300px;
+    }
+
+    h2, h3 {
+        text-align: center;
+    }
+
+    /* Inputs & buttons */
+    input {
+        width: 100%;
+        padding: 12px;
+        margin-top: 10px;
+        border-radius: 10px;
+        border: none;
+        font-size: 16px;
+    }
+
+    button {
+        width: 100%;
+        margin-top: 15px;
+        padding: 12px;
+        font-size: 16px;
+        border: none;
+        border-radius: 10px;
+        background: cyan;
+        color: black;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.2s;
+    }
+
+    button:hover {
+        background: #00ffffaa;
+    }
+
+    /* Boxes */
+    .box {
+        background: rgba(0,0,0,0.4);
+        padding: 15px;
+        border-radius: 12px;
+        margin-top: 15px;
+    }
+
+    /* Transaction list */
+    #txList {
+        list-style: none;
+        padding-left: 0;
+        font-size: 14px;
+        max-height: 250px;
+        overflow-y: auto;
+    }
+
+    #txList li {
+        margin-bottom: 10px;
+    }
+
+    /* Status message */
+    #statusMsg {
+        text-align: center;
+        margin-top: 10px;
+        color: #ffcc00;
+        font-weight: bold;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .container {
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .left-panel, .right-panel {
+            width: 90%;
+        }
+    }
+    #balanceBox {
+    font-weight: bold;
+    font-size: 18px; /* slightly larger */
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- LEFT PANEL -->
+    <div class="left-panel">
+        <h2>🔍 Wallet Tracker</h2>
+        <input type="text" id="walletInput" placeholder="Enter Ethereum Address (0x...)">
+        <button onclick="connectWallet()">🔗 Connect MetaMask</button>
+        <button onclick="getBalance()">💰 Check Balance</button>
+        <button onclick="loadTransactions()">📜 Load Transactions</button>
+        <div id="statusMsg"></div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="right-panel">
+        <h2>📊 Wallet Dashboard</h2>
+        <div class="box" id="balanceBox">Balance: —</div>
+        <div class="box">
+            <h3>Recent Transactions</h3>
+            <ul id="txList">
+                <li>Click "Load Transactions"</li>
+            </ul>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const ETHERSCAN_API_KEY = "YOUR_ETHERSCAN_API_KEY"; // Replace with your key
+    let provider, signer, connectedAccount = null;
+
+    const statusMsg = document.getElementById("statusMsg");
+
+    function setStatus(message, color="#ffcc00") {
+        statusMsg.innerText = message;
+        statusMsg.style.color = color;
+    }
+
+    /* 🔗 CONNECT METAMASK */
+    async function connectWallet() {
+        try {
+            if (!window.ethereum) {
+                setStatus("MetaMask is NOT installed!", "red");
+                return;
+            }
+
+            provider = new ethers.BrowserProvider(window.ethereum);
+            const accounts = await provider.send("eth_requestAccounts", []);
+            connectedAccount = accounts[0];
+
+            signer = await provider.getSigner();
+            document.getElementById("walletInput").value = connectedAccount;
+
+            setStatus("✅ MetaMask Connected!", "lime");
+        } catch (error) {
+            console.error(error);
+            setStatus("❌ Connection failed", "red");
+        }
+    }
+
+    /* 💰 GET BALANCE */
+    async function getBalance() {
+        try {
+            if (!provider) {
+                setStatus("Connect MetaMask first!", "red");
+                return;
+            }
+
+            const address = document.getElementById("walletInput").value.trim();
+            if (!ethers.isAddress(address)) {
+                setStatus("Invalid Ethereum address!", "red");
+                return;
+            }
+
+            const balance = await provider.getBalance(address);
+            document.getElementById("balanceBox").innerText =
+                "Balance: " + ethers.formatEther(balance) + " ETH";
+
+            setStatus("Balance fetched successfully", "lime");
+        } catch (error) {
+            console.error(error);
+            setStatus("Failed to fetch balance", "red");
+        }
+    }
+
+    /* 📜 LOAD TRANSACTIONS */
+    async function loadTransactions() {
+        const address = document.getElementById("walletInput").value.trim();
+        if (!ethers.isAddress(address)) {
+            setStatus("Invalid Ethereum address!", "red");
+            return;
+        }
+
+        const txList = document.getElementById("txList");
+        txList.innerHTML = "<li>Loading...</li>";
+        setStatus("Fetching transactions...");
+
+        const url = `https://api.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${ETHERSCAN_API_KEY}`;
+
+        try {
+            const res = await fetch(url);
+            const data = await res.json();
+
+            if (data.status !== "1" || !data.result || data.result.length === 0) {
+                txList.innerHTML = "<li>No transactions found</li>";
+                setStatus("No transactions found", "#ffcc00");
+                return;
+            }
+
+            let html = "";
+            data.result.slice(0, 5).forEach(tx => {
+                html += `
+                    <li>
+                        <b>Hash:</b> ${tx.hash.slice(0, 16)}...<br>
+                        <b>To:</b> ${tx.to.slice(0, 12)}...<br>
+                        <b>Value:</b> ${ethers.formatEther(tx.value)} ETH
+                    </li><hr>`;
+            });
+            txList.innerHTML = html;
+            setStatus("Transactions loaded successfully", "lime");
+        } catch (err) {
+            console.error(err);
+            txList.innerHTML = "<li>Error loading transactions</li>";
+            setStatus("Error loading transactions", "red");
+        }
+    }
+
+    /* AUTO RELOAD ON ACCOUNT/CHAIN CHANGE */
+    if (window.ethereum) {
+        ethereum.on("accountsChanged", () => location.reload());
+        ethereum.on("chainChanged", () => location.reload());
+    }
+</script>
+
+</body>
+</html> 
