@@ -1,43 +1,43 @@
-🔍 Digital Asset Tracker
+Digital Asset Tracker:
 
-A simple Ethereum wallet tracker that lets users connect MetaMask, check ETH balance, and view recent transactions directly in the browser.
+   A simple Ethereum wallet tracker that lets users connect MetaMask, check ETH balance, and view recent transactions directly in the browser.
 
-✨ Features
+Features:
 
-🔗 MetaMask wallet connection
+   MetaMask wallet connection
 
-💰 Real-time ETH balance
+   Real-time ETH balance
 
-📜 Recent transaction history
+   Recent transaction history
 
-🌐 No backend required
+   No backend required
 
-🛠 Tech Stack
+Tech Stack:
 
-HTML, CSS, JavaScript
+   HTML, CSS, JavaScript
 
-Ethers.js v6
+   Ethers.js v6
 
-Etherscan API
+   Etherscan API
 
-⚙️ Setup
+Setup:
 
-Clone the repo
+    Clone the repo
 
-Get an Etherscan API key
+    Get an Etherscan API key
 
-Replace YOUR_ETHERSCAN_API_KEY in the code
+    Replace YOUR_ETHERSCAN_API_KEY in the code
 
-Open index.html in a browser
+    Open index.html in a browser
 
-🔐 Security
+ Security:
 
-No private keys stored
+    No private keys stored
 
-MetaMask handles wallet security
+    MetaMask handles wallet security
 
-Uses public blockchain data only
+    Uses public blockchain data only
 
-👨‍💻 Author
+Author:
 
-Kishore K
+    Kishore K
